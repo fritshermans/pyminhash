@@ -19,10 +19,12 @@ Install directly from PyPi:
 Usage
 -----
 
-Apply record matching to your Pandas dataframe `df` as follows:
+Apply record matching to column `name` of your Pandas dataframe `df` as follows:
 
-``myHasher = MinHash(n_hash_tables=10)
-myHasher.fit_predict(df, 'name')``
+.. code-block:: python
+
+   myHasher = MinHash(n_hash_tables=10)
+   myHasher.fit_predict(df, 'name')
 
 This will return the row pairs from `df` that have non-zero Jaccard similarity.
 
