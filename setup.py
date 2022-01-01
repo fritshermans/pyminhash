@@ -5,6 +5,7 @@ base_packages = [
     'numpy',
     'scikit-learn',
     'pytest',
+    'openpyxl'
 ]
 
 util_packages = [
