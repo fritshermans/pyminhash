@@ -1,0 +1,1 @@
+from .pyminhash import MinHash
