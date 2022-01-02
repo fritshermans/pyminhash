@@ -6,20 +6,20 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 
 class MinHash:
+    """
+    Class to apply minhashing to a Pandas dataframe string column. Tokenization is done by Scikit-Learn's
+    `CountVectorizer`.
+
+    Args:
+        n_hash_tables: nr of hash tables
+        ngram_range: The lower and upper boundary of the range of n-values for different n-grams to be extracted
+        analyzer: {'word', 'char', 'char_wb'}, whether the feature should be made of word n-gram or character
+            n-grams, 'char_wb' creates character n-grams only from text inside word boundaries
+        **kwargs: other CountVectorizer arguments
+
+    """
     def __init__(self, n_hash_tables: int = 10, ngram_range: Tuple[int] = (1, 1), analyzer: str = 'word',
                  **kwargs) -> None:
-        """
-        Class to apply minhashing to a Pandas dataframe string column. Tokenization is done by Scikit-Learn's
-        `CountVectorizer`.
-
-        Args:
-            n_hash_tables: nr of hash tables
-            ngram_range: The lower and upper boundary of the range of n-values for different n-grams to be extracted
-            analyzer: {'word', 'char', 'char_wb'}, whether the feature should be made of word n-gram or character
-            n-grams, 'char_wb' creates character n-grams only from text inside word boundaries
-            **kwargs: other CountVectorizer arguments
-
-        """
         self.cv = CountVectorizer(binary=True, ngram_range=ngram_range, analyzer=analyzer, **kwargs)
         self.n_hashes = n_hash_tables
         self.max_token_value = 2 ** 32 - 1
