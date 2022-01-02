@@ -41,7 +41,7 @@ class MinHash:
 
         """
         self.cv.fit(df[col_name])
-        df['sparse_vector'] = df.apply(lambda row: self.cv.transform([row[col_name]]).indices.tolist(), axis=1)
+        df['sparse_vector'] = self.cv.transform(df[col_name]).tolil().rows
         return df
 
     def _create_hashing_parameters(self) -> np.array:
