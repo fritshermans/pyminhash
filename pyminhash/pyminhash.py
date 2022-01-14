@@ -18,6 +18,7 @@ class MinHash:
         **kwargs: other CountVectorizer arguments
 
     """
+
     def __init__(self, n_hash_tables: int = 10, ngram_range: Tuple[int] = (1, 1), analyzer: str = 'word',
                  **kwargs) -> None:
         self.cv = CountVectorizer(binary=True, ngram_range=ngram_range, analyzer=analyzer, **kwargs)
@@ -102,14 +103,14 @@ class MinHash:
             Pandas dataframe containing pairs of strings with non-zero Jaccard similarity
 
         """
-        pairs_table = pd.DataFrame()
+        pairs_tables = []
         for h in range(self.n_hashes):
             comparison = df.merge(df[['row_number', f'hash_{h}']], on=f'hash_{h}', how='left', suffixes=('_1', '_2'))
             comparison = comparison[comparison['row_number_1'] < comparison['row_number_2']]
             comparison[f'hash_{h}'] = 1
-            pairs_table = pairs_table.append(comparison[['row_number_1', 'row_number_2', f'hash_{h}']],
-                                             ignore_index=True)
-        pairs_table = pairs_table.fillna(0)
+            pairs_tables.append(comparison[['row_number_1', 'row_number_2', f'hash_{h}']])
+        pairs_table = (pd.concat(pairs_tables)
+                       .fillna(0))
 
         pairs_table = (pairs_table.groupby(['row_number_1', 'row_number_2'], as_index=False)
                        [[f'hash_{x}' for x in range(self.n_hashes)]]
