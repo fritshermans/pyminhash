@@ -103,7 +103,7 @@ class MinHash:
             Pandas dataframe containing pairs of strings with non-zero Jaccard similarity
 
         """
-        pairs_tables = [pd.DataFrame()]
+        pairs_tables = []
         for h in range(self.n_hashes):
             comparison = df.merge(df[['row_number', f'hash_{h}']], on=f'hash_{h}', how='left', suffixes=('_1', '_2'))
             comparison = comparison[comparison['row_number_1'] < comparison['row_number_2']]
