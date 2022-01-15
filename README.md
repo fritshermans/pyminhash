@@ -35,7 +35,7 @@ python setup.py develop
 
 ## Usage
 
-Apply record matching to your Pandas dataframe `df` as follows:
+Apply record matching to column `name` of your Pandas dataframe `df` as follows:
 
 ```python
 myHasher = MinHash(n_hash_tables=10)
