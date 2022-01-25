@@ -1,6 +1,17 @@
+<!--- BADGES: START --->
 [![Version](https://img.shields.io/pypi/v/pyminhash)](https://pypi.org/project/pyminhash/)
 ![](https://img.shields.io/github/license/fritshermans/pyminhash)
 [![Downloads](https://pepy.tech/badge/pyminhash)](https://pepy.tech/project/pyminhash)
+[![Conda - Platform](https://img.shields.io/conda/pn/conda-forge/pyminhash?logo=anaconda&style=flat)][#conda-forge-package]
+[![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/pyminhash?logo=anaconda&style=flat&color=orange)][#conda-forge-package]
+[![Conda Recipe](https://img.shields.io/static/v1?logo=conda-forge&style=flat&color=green&label=recipe&message=pyminhash)][#conda-forge-feedstock]
+[![Docs - GitHub.io](https://img.shields.io/static/v1?logo=readthdocs&style=flat&color=pink&label=docs&message=pyminhash)][#docs-package]
+
+[#pypi-package]: https://pypi.org/project/pyminhash/
+[#conda-forge-package]: https://anaconda.org/conda-forge/pyminhash
+[#conda-forge-feedstock]: https://github.com/conda-forge/pyminhash-feedstock
+[#docs-package]: https://pyminhash.readthedocs.io/en/latest/
+<!--- BADGES: END --->
 
 # PyMinHash
 
