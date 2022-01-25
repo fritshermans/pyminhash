@@ -28,12 +28,18 @@ Documentation can be found [here](https://pyminhash.readthedocs.io/en/latest/)
 ## Installation
 
 ### Normal installation
-
-Install directly from PyPi:
+**Using PyPI**
 
 ```
 pip install pyminhash
 ```
+
+**Using conda**
+
+```
+conda install -c conda-forge pyminhash
+```
+
 
 ### Install to contribute
 

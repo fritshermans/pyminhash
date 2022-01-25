@@ -12,9 +12,13 @@ started.
 Installation
 ------------
 
-Install directly from PyPi:
+Install directly from PyPI:
 
 ``pip install pyminhash``
+
+or using conda-forge:
+
+``conda install -c conda-forge pyminhash``
 
 Usage
 -----
