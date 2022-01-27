@@ -24,7 +24,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(name='PyMinHash',
-      version='0.1.1',
+      version='0.1.2',
       author="Frits Hermans",
       description="Efficient MinHashing",
       long_description=long_description,
