@@ -54,7 +54,7 @@ class MinHash:
             random hashing parameter values
 
         """
-        return np.random.randint(0, self.max_token_value, self.n_hashes, dtype=int)
+        return np.random.randint(0, self.max_token_value, self.n_hashes, dtype=np.int64)
 
     def _create_minhash(self, doc: List[int]) -> np.array:
         """
