@@ -17,7 +17,7 @@ def test__create_hashing_parameters():
     myMinHasher = MinHash(n_hash_tables=n_hashes)
     res = myMinHasher._create_hashing_parameters()
     assert len(res) == n_hashes
-    assert res.dtype == 'int'
+    assert res.dtype == 'int64'
     assert min(res) >= 0
     assert min(res) <= myMinHasher.max_token_value
 
@@ -37,7 +37,7 @@ def test__create_minhash_signatures():
     df = myMinHasher._create_minhash_signatures(df)
     for col in ['hash_0', 'hash_1', 'hash_2']:
         assert col in df.columns
-        assert df[col].dtype == 'int'
+        assert df[col].dtype == 'int64'
 
 
 def test_fit_predict():
