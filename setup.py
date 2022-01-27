@@ -4,11 +4,11 @@ base_packages = [
     'pandas',
     'numpy',
     'scikit-learn',
-    'pytest',
     'openpyxl'
 ]
 
 util_packages = [
+    'pytest',
     "jupyterlab",
 ]
 
