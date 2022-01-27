@@ -12,6 +12,6 @@ def load_data() -> pd.DataFrame:
         Pandas dataframe containing single column 'name'
 
     """
-    file_path = resource_filename('pyminhash', os.path.join('data', 'stoxx50_extended_with_id.xlsx'))
-    df = pd.read_excel(file_path, engine='openpyxl')
+    file_path = resource_filename('pyminhash', os.path.join('data', 'stoxx50_extended_with_id.csv'))
+    df = pd.read_csv(file_path)
     return df[['name']]
