@@ -2,9 +2,6 @@ from setuptools import setup, find_packages
 
 base_packages = [
     'pandas',
-    'numpy',
-    'scikit-learn',
-    'openpyxl'
 ]
 
 util_packages = [
