@@ -12,13 +12,17 @@ util_packages = [
     "jupyterlab",
 ]
 
+runtime_packages = [
+    "pyspark==3.0.3"
+]
+
 docs_packages = [
     "sphinx==3.5.4",
     "nbsphinx",
     'sphinx_rtd_theme'
 ]
 
-dev_packages = base_packages + util_packages + docs_packages
+dev_packages = base_packages + runtime_packages + util_packages + docs_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
