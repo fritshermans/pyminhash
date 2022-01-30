@@ -86,7 +86,10 @@ class MinHash:
 
         """
         df['minhash_signature'] = df['sparse_vector'].apply(self._create_minhash)
-        df[[f'hash_{x}' for x in range(self.n_hashes)]] = df['minhash_signature'].apply(pd.Series)
+        # the following involved way of creating 'hash_' columns prevents efficiency warnings
+        hash_df = df['minhash_signature'].apply(pd.Series)
+        hash_df.columns = [f'hash_{x}' for x in range(self.n_hashes)]
+        df = pd.concat((df, hash_df), axis=1)
         return df
 
     def _create_pairs(self, df: pd.DataFrame, col_name: str) -> pd.DataFrame:
