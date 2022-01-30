@@ -1,8 +1,10 @@
 from typing import Tuple, List
 
-import numpy as np
-import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
+import pyspark.sql.functions as f
+from pyspark.sql.window import Window
+from pyspark.sql import DataFrame
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import CountVectorizer, Tokenizer, NGram, VectorAssembler, MinHashLSH
 
 
 class MinHash:
@@ -13,22 +15,15 @@ class MinHash:
     Args:
         n_hash_tables: nr of hash tables
         ngram_range: The lower and upper boundary of the range of n-values for different n-grams to be extracted
-        analyzer: {'word', 'char', 'char_wb'}, whether the feature should be made of word n-gram or character
-            n-grams, 'char_wb' creates character n-grams only from text inside word boundaries
-        **kwargs: other CountVectorizer arguments
 
     """
 
-    def __init__(self, n_hash_tables: int = 10, ngram_range: Tuple[int] = (1, 1), analyzer: str = 'word',
-                 **kwargs) -> None:
-        self.cv = CountVectorizer(binary=True, ngram_range=ngram_range, analyzer=analyzer, **kwargs)
+    def __init__(self, n_hash_tables: int = 10, ngram_range: Tuple[int] = (1, 1), row_id: str = "row_number") -> None:
+        self.ngram_range = range(ngram_range[0], ngram_range[1] + 1)
         self.n_hashes = n_hash_tables
-        self.max_token_value = 2 ** 32 - 1
-        self.next_prime = 4294967311  # `sympy.nextprime(self.max_token_value)`
-        self.a = self._create_hashing_parameters()
-        self.b = self._create_hashing_parameters()
+        self.row_id = row_id
 
-    def _sparse_vectorize(self, df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+    def _sparse_vectorize(self, df: DataFrame, col_name: str) -> DataFrame:
         """
         Vectorize text data in column `col_name` in Pandas dataframe `df` into sparse format.
 
@@ -41,97 +36,40 @@ class MinHash:
             `col_name`
 
         """
-        self.cv.fit(df[col_name])
-        df['sparse_vector'] = self.cv.transform(df[col_name]).tolil().rows
+
+        tokenizer = [Tokenizer(inputCol=col_name, outputCol="words")]
+        ngrams = [
+            NGram(n=i, inputCol="words", outputCol=f"{i}_grams")
+            for i in self.ngram_range
+        ]
+
+        vectorizers = [
+            CountVectorizer(inputCol=f"{i}_grams",
+                            outputCol=f"{i}_counts")
+            for i in self.ngram_range
+        ]
+
+        assembler = [VectorAssembler(
+            inputCols=[f"{i}_counts" for i in self.ngram_range],
+            outputCol="sparse_vector"
+        )]
+
+        sparse_vector_model = Pipeline(
+            stages=tokenizer + ngrams + vectorizers + assembler)
+
+        original_columns = df.columns
+
+        return sparse_vector_model.fit(df).transform(df)\
+            .select(original_columns + ['sparse_vector'])
+
+    def _add_row_number(self, df):
+        # add row number if does not exists
+        if self.row_id not in df.columns:
+            w = Window().orderBy(f.lit('A'))
+            return df.withColumn(self.row_id, f.row_number().over(w))
         return df
 
-    def _create_hashing_parameters(self) -> np.array:
-        """
-        Creates random integer values to be used as `a` and `b` parameters for hashing. The random values are drawn from
-        the domain [0,max_token_value] and have the size `n_hash_tables`
-
-        Returns:
-            random hashing parameter values
-
-        """
-        return np.random.randint(0, self.max_token_value, self.n_hashes, dtype=np.int64)
-
-    def _create_minhash(self, doc: List[int]) -> np.array:
-        """
-        Calculate minhash values for documents `doc` represented as sparse vectors.
-
-        Args:
-            doc: sparse vector representation of a document
-
-        Returns:
-            Numpy array of size `n_hash_tables` containing minhash representations of `doc`
-
-        """
-        hashes = np.matmul(np.asarray(doc).reshape(-1, 1), self.a.reshape(1, -1))
-        hashes += self.b
-        hashes %= self.next_prime
-        minhashes = hashes.min(axis=0)
-        return minhashes
-
-    def _create_minhash_signatures(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Apply minhashing to the column `sparse_vector` in Pandas dataframe `df` in the new column `minhash_signature`.
-        In addition, one column (e.g.: 'hash_{0}') per hash table is created.
-
-        Args:
-            df: Pandas dataframe containing a column `sparse_vector`
-
-        Returns:
-            Pandas dataframe containing minhash signatures
-
-        """
-        df['minhash_signature'] = df['sparse_vector'].apply(self._create_minhash)
-        df[[f'hash_{x}' for x in range(self.n_hashes)]] = df['minhash_signature'].apply(pd.Series)
-        return df
-
-    def _create_pairs(self, df: pd.DataFrame, col_name: str) -> pd.DataFrame:
-        """
-        Create pairs of rows that have at least one minhash signature in common. The column `jaccard_sim` contains
-        Jaccard similarity values.
-
-        Args:
-            df: Pandas dataframe containing minhash signatures in the columns `hash_{n}` with {n} ranging from 0 to
-            n_hash_tables.
-            col_name: column name on which minhashing is applied
-
-        Returns:
-            Pandas dataframe containing pairs of strings with non-zero Jaccard similarity
-
-        """
-        pairs_tables = []
-        for h in range(self.n_hashes):
-            comparison = df.merge(df[['row_number', f'hash_{h}']], on=f'hash_{h}', how='left', suffixes=('_1', '_2'))
-            comparison = comparison[comparison['row_number_1'] < comparison['row_number_2']]
-            comparison[f'hash_{h}'] = 1
-            pairs_tables.append(comparison[['row_number_1', 'row_number_2', f'hash_{h}']])
-        pairs_table = (pd.concat(pairs_tables)
-                       .fillna(0))
-
-        pairs_table = (pairs_table.groupby(['row_number_1', 'row_number_2'], as_index=False)
-                       [[f'hash_{x}' for x in range(self.n_hashes)]]
-                       .sum())
-
-        pairs_table['jaccard_sim'] = (pairs_table[[f'hash_{x}' for x in range(self.n_hashes)]].sum(axis=1) /
-                                      self.n_hashes)
-
-        pairs_table = (pairs_table
-                       .merge(df[['row_number', col_name]], left_on='row_number_1', right_on='row_number')
-                       .drop(columns=['row_number'])
-                       .rename(columns={col_name: f'{col_name}_1'})
-                       .merge(df[['row_number', col_name]], left_on='row_number_2', right_on='row_number')
-                       .drop(columns=['row_number'])
-                       .rename(columns={col_name: f'{col_name}_2'})
-                       )
-
-        return (pairs_table[['row_number_1', 'row_number_2', f'{col_name}_1', f'{col_name}_2', 'jaccard_sim']]
-                .sort_values('jaccard_sim', ascending=False))
-
-    def fit_predict(self, df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+    def fit_predict(self, df: DataFrame, col_name: str) -> DataFrame:
         """
         Create pairs of rows in Pandas dataframe `df` in column `col_name` that have a non-zero Jaccard similarity.
         Jaccard similarities are added to the column `jaccard_sim`.
@@ -144,9 +82,36 @@ class MinHash:
             Pandas dataframe containing pairs of (partial) matches
 
         """
-        df_ = df[[col_name]].drop_duplicates().copy()
-        if 'row_number' not in df_.columns:
-            df_['row_number'] = np.arange(len(df_))
+        df_ = self._add_row_number(df)
+        
+        # drop duplicate and keep the first row id
+        df_ = df_.groupBy(col_name).agg(
+            f.first(self.row_id).alias(self.row_id)
+        )
+
         df_ = self._sparse_vectorize(df_, col_name)
-        df_ = self._create_minhash_signatures(df_)
-        return self._create_pairs(df_, col_name)
+
+        mh = MinHashLSH(inputCol="sparse_vector",
+                        outputCol="hashes", numHashTables=self.n_hashes)
+        model = mh.fit(df_)
+
+        transform = model.transform(df_)
+
+        # Create pairs of rows that have at least one minhash signature in common (1/self.n_hashes) The column `jaccard_sim` contains
+        # Jaccard similarity values.
+
+        pairs = model.approxSimilarityJoin(
+            transform,
+            transform,
+            0.5,
+            'jaccard_distance')
+        pairs = pairs.withColumn('jaccard_sim', f.lit(
+            1) - f.col('jaccard_distance')).drop('jaccard_distance')
+
+        pairs = pairs.select(
+            f.col(f"datasetA.{self.row_id}").alias(f"{self.row_id}_1"),
+            f.col(f"datasetB.{self.row_id}").alias(f"{self.row_id}_2"),
+            f.col(f"datasetA.{col_name}").alias(f"{col_name}_1"),
+            f.col(f"datasetB.{col_name}").alias(f"{col_name}_2"),
+            f.col("jaccard_sim"))
+        return pairs
