@@ -1,3 +1,4 @@
+import pandas as pd
 import pytest
 
 from pyminhash import MinHash
@@ -10,6 +11,17 @@ def test__sparse_vector():
     res = myMinHasher._sparse_vectorize(df, 'name')
     assert res.columns.tolist() == ['name', 'sparse_vector']
     assert res['sparse_vector'].dtype == 'object'
+
+
+def test__sparse_vector_zero_vectors():
+    df = pd.DataFrame(
+        data=[['george d'], ['andy t'], ['greg b'], ['ret'], ['pam'], ['kos'], ['andy'],
+              ['pamela'], ['pamla'], ['kis'], ['paul'], ['paul d'],
+              ['geirge d'], ['ndy t'], ['greg'], ['retos'], ['pipo'], ['konstas'], ['grig'], ['gre'], ['k i']],
+        columns=['name'])
+    myMinHasher = MinHash(10)
+    res = myMinHasher._sparse_vectorize(df, 'name')
+    assert (res['sparse_vector'].str.len() > 0).all()
 
 
 def test__create_hashing_parameters():
