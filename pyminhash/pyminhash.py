@@ -43,6 +43,7 @@ class MinHash:
         """
         self.cv.fit(df[col_name])
         df['sparse_vector'] = self.cv.transform(df[col_name]).tolil().rows
+        df = df[df['sparse_vector'].str.len() > 0]  # filter out zero length vectors
         return df
 
     def _create_hashing_parameters(self) -> np.array:
