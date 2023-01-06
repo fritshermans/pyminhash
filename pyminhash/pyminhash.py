@@ -155,8 +155,7 @@ class MinHash:
         # check if there is any duplicate value in the series
         if duplicates.any():
             duplicate_count = duplicates.value_counts().loc[True]
-            message = "There are {} duplicates in the dataset for column '{}', consider removing duplicates first".format(
-                duplicate_count, col_name)
+            message = f"There are {duplicate_count} duplicates in the dataset for column '{col_name}', consider removing duplicates first"
             warnings.warn(message)
         if 'row_number' not in df_.columns:
             df_['row_number'] = np.arange(len(df_))
