@@ -1,3 +1,4 @@
+import warnings
 from typing import Tuple, List
 
 import numpy as np
@@ -148,7 +149,15 @@ class MinHash:
             Pandas dataframe containing pairs of (partial) matches
 
         """
-        df_ = df[[col_name]].drop_duplicates().copy()
+        df_ = df[[col_name]].copy()
+        # get boolean series indicating if a value is a duplicate
+        duplicates = df_.duplicated()
+        # check if there is any duplicate value in the series
+        if duplicates.any():
+            duplicate_count = duplicates.value_counts().loc[True]
+            message = f"There are {duplicate_count} duplicates in the dataset for column '{col_name}', " \
+                      f"consider removing duplicates first"
+            warnings.warn(message)
         if 'row_number' not in df_.columns:
             df_['row_number'] = np.arange(len(df_))
         df_ = self._sparse_vectorize(df_, col_name)
