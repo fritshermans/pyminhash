@@ -19,7 +19,7 @@ MinHashing is a very efficient way of finding similar records in a dataset based
 implements efficient minhashing for Pandas dataframes. See instructions below or look at the example notebook to get
 started.
 
-Developed by [Frits Hermans](https://www.linkedin.com/in/frits-hermans-data-scientist/)
+Developed by [Frits Hermans](https://fritshermans.github.io/)
 
 ## Documentation
 
