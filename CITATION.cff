@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: pyminhash
+title: PyMinHash
 message: >-
   If you use PyMinHash, please cite it using the
   metadata from this file.
