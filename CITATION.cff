@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: pyminhash
+message: >-
+  If you use PyMinHash, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Frits
+    family-names: Hermans
+repository-code: 'https://github.com/fritshermans/pyminhash'
+abstract: >-
+  MinHashing is a very efficient way of finding similar
+  records in a dataset based on Jaccard similarity.
+  PyMinHash implements efficient minhashing for Pandas
+  dataframes.
+keywords:
+  - minhash
+  - string matching
+  - fuzzy matching
+license: MIT
